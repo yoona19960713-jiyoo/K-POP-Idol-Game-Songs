@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>歌曲企劃室</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#24182D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEEBF3; --paper:#FBFAFD; --ink:#24182D; --soft:#6A5C74; --line:#D9D2E2; --well:#E4DFEB;
+  --pos:#2E7D5B; --neg:#B23A48; --warn:#9A6A10; --focus:#5B3FA0;
+  --empty:repeating-linear-gradient(135deg,#CFC7DA 0 5px,#E4DFEB 5px 10px);
+  color-scheme:light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141018; --paper:#1D1824; --ink:#EEE8F4; --soft:#A99BB5; --line:#352C40; --well:#29222F;
+  --pos:#5CC497; --neg:#F07A88; --warn:#E3B04B; --focus:#B49BF0;
+  --empty:repeating-linear-gradient(135deg,#3A3145 0 5px,#29222F 5px 10px); color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141018; --paper:#1D1824; --ink:#EEE8F4; --soft:#A99BB5; --line:#352C40; --well:#29222F;
+  --pos:#5CC497; --neg:#F07A88; --warn:#E3B04B; --focus:#B49BF0; --empty:repeating-linear-gradient(135deg,#3A3145 0 5px,#29222F 5px 10px); color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+.num{font-family:Archivo,"Noto Sans TC",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;margin-bottom:14px}
+.title{flex:1 1 320px;min-width:0}
+.title input{width:100%;border:0;background:transparent;font:800 clamp(30px,6vw,52px)/1.05 Archivo,"Noto Sans TC",sans-serif;letter-spacing:-.01em;padding:0;color:var(--ink)}
+.title input:focus{outline:none;border-bottom:2px solid var(--focus)}
+.sub{color:var(--soft);font-size:14px;margin-top:4px}
+/* 歌曲色帶:整首歌的分配一眼看完 */
+.ribbon{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px}
+.strip{display:flex;height:46px;border-radius:8px;overflow:hidden;gap:2px;background:var(--well)}
+.blk{position:relative;min-width:3px;cursor:pointer;border:0;padding:0}
+.blk.empty{background:var(--empty)}
+.blk .kp{position:absolute;top:-1px;left:50%;transform:translateX(-50%);font-size:11px;line-height:1;color:#fff;text-shadow:0 0 3px rgba(0,0,0,.6)}
+.secs{display:flex;gap:2px;margin-top:6px}
+.secs span{font-size:11px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:2px solid var(--line);padding-top:2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:13px;color:var(--soft)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;margin-top:16px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.side{order:-1}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:12px}
+@media (max-width:900px){.side{position:static}}
+h2{font-size:17px;margin:0 0 10px}
+h3{font-size:15px;margin:0}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.spec label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--soft)}
+select,input[type=number]{background:var(--well);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:0}
+input[type=range]{accent-color:var(--focus)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--well);border-radius:999px;padding:7px 14px;cursor:pointer}
+.btn.pri{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn:hover{border-color:var(--soft)}
+/* 段落與句子 */
+.sec{border-top:1px solid var(--line);padding:12px 0 6px}
+.sec:first-child{border-top:0;padding-top:0}
+.sechead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sechead .c{font-size:13px;color:var(--soft);display:flex;gap:6px;align-items:center}
+.ln{display:grid;grid-template-columns:96px 62px 92px 1fr 30px 26px;gap:6px;align-items:center;padding:4px 0}
+@media (max-width:560px){.ln{grid-template-columns:1fr 62px 92px 30px 26px}.ln .who{grid-column:1/-1;order:9}}
+.ln select,.ln input{padding:4px 6px;font-size:13px}
+.who{display:flex;gap:5px;flex-wrap:wrap}
+.mb{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:transparent;cursor:pointer;font-size:12px;font-weight:700;padding:0;color:var(--soft)}
+.mb[aria-pressed="true"]{color:#fff;border-color:transparent;text-shadow:0 0 2px rgba(0,0,0,.45)}
+.kill{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:15px;color:var(--soft);padding:0}
+.kill[aria-pressed="true"]{background:#F3C64B;color:#3A2A00;border-color:#F3C64B}
+.del{border:0;background:transparent;color:var(--soft);cursor:pointer;font-size:18px;padding:0}
+.add{font-size:13px;color:var(--soft);background:none;border:0;cursor:pointer;padding:4px 0}
+.ln.warnline select:first-child{border-color:var(--warn)}
+/* 結果 */
+.score{display:flex;align-items:baseline;gap:12px}
+.score .big{font:800 56px/1 Archivo,sans-serif}
+.score .rank{font-weight:700}
+.sub6{font-size:13px;color:var(--soft)}
+.meter{display:grid;grid-template-columns:84px 1fr 34px;gap:8px;align-items:center;font-size:13px;margin-top:6px}
+.bar{height:8px;border-radius:4px;background:var(--well);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);border-radius:4px}
+.share{display:grid;grid-template-columns:42px 1fr 74px;gap:8px;align-items:center;font-size:13px;margin-top:8px}
+.share .track{position:relative;height:14px;border-radius:7px;background:var(--well)}
+.share .fill{height:100%;border-radius:7px}
+.share .exp{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+.warns{margin:0;padding-left:18px;font-size:13px}
+.warns li{margin:3px 0}
+.warns .w{color:var(--warn)}.warns .b{color:var(--neg)}.warns .g{color:var(--pos)}
+.react{font-size:13px;margin-top:10px}
+.react b{font-weight:700}
+.tagline{font-size:12px;color:var(--soft)}
+.up{color:var(--pos)}.dn{color:var(--neg)}
+.foot{color:var(--soft);font-size:12px;margin-top:18px}
+@media (prefers-reduced-motion:no-preference){.blk,.fill,.bar i{transition:flex-grow .25s,width .25s}}
+.relbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:4px 0 14px}
+.relbar select{font-weight:500}
+.tracks{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:14px}
+.tk{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:6px 12px;cursor:pointer;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tk[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tk .no{font-family:Archivo,sans-serif;opacity:.6;margin-right:6px}
+.trackname{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.trackname input{flex:1;min-width:0;background:var(--well);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-weight:700}
+.mix{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+.mix label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--soft)}
+.prodinfo{font-size:13px;color:var(--soft);margin-top:6px}
+.relscore{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.relscore div{background:var(--well);border-radius:10px;padding:8px 10px}
+.relscore b{display:block;font:700 20px/1.2 Archivo,"Noto Sans TC",sans-serif}
+.relscore span{font-size:12px;color:var(--soft)}
+ .av{width:46px;height:46px;border-radius:50%;flex:none;display:inline-grid;place-items:center;font-weight:700;font-size:18px;color:#fff;overflow:hidden;border:0;padding:0;cursor:pointer;text-shadow:0 0 2px rgba(0,0,0,.4)}
+.av img{width:100%;height:100%;object-fit:cover}
+.react{display:grid;grid-template-columns:46px 1fr;gap:10px;align-items:start}
+.blk.inst{background:var(--line);cursor:default}
+.secinst{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--soft)}
+.secinst input{width:52px;padding:2px 6px;font-size:12px}
+.lenrow{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;font-size:13px;color:var(--soft);margin:0 0 10px}
+.lenrow b{font:800 22px/1 Archivo,sans-serif;color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:14px;z-index:20}
+.hidden{display:none!important}
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--paper);color:var(--ink);max-width:min(440px,92vw);padding:18px}
+dialog::backdrop{background:rgba(20,10,30,.45)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;font-size:12px}
+.seg button{border:0;background:transparent;padding:3px 10px;cursor:pointer;color:var(--soft)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="title"><input id="relName" aria-label="專輯或單曲名稱"><div class="sub" id="relSub"></div></div>
+  </div>
+  <div class="relbar">
+    <label class="sub6">發行形式 <select id="relType"></select></label>
+    <label class="sub6">發行年份 <select id="year"></select></label>
+    <label class="sub6">月份 <select id="month"></select></label>
+  </div>
+  <div class="tracks" id="tracks"></div>
+
+  <div class="ribbon" aria-label="這首歌的分配色帶">
+    <div class="strip" id="strip"></div>
+    <div class="secs" id="secs"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="grid">
+    <main>
+      <div class="panel">
+        <div class="trackname"><input id="songName" aria-label="歌名"><button class="btn" id="setTitle"></button><button class="btn" id="delTrack">刪除這首</button></div>
+        <h2>曲風</h2>
+        <div class="mix">
+          <label>主曲風<select id="g0"></select></label>
+          <label>混合曲風一<select id="g1"></select></label>
+          <label>混合曲風二<select id="g2"></select></label>
+        </div>
+        <div class="spec">
+          <label>情緒<select id="mood"></select></label>
+          <label>製作團隊<select id="prod"></select></label>
+          <label>編舞強度 <span id="choreoV" class="num"></span><input type="range" id="choreo" min="1" max="5" step="1"></label>
+        </div>
+        <div class="prodinfo" id="prodInfo"></div>
+        <div class="btns">
+          <button class="btn pri" id="suggest">建議分配</button>
+          <button class="btn" id="clear">清空分配</button>
+          <button class="btn" id="reset">依主曲風重設結構</button>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h2>分配表</h2>
+        <p class="sub6" style="margin:-4px 0 10px">每一句選類型、秒數、難度(1 最簡單、5 最難),再點成員頭像指定誰唱,可以多選成合唱。星號是 killing part,一首歌只能有一句。</p>
+        <div class="lenrow" id="lenRow"></div>
+        <div id="editor"></div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h2>資料與版本</h2>
+        <p class="sub6" style="margin:-4px 0 10px">內容存在這台裝置裡。換裝置或更新前,可以先匯出備份。</p>
+        <div class="btns" style="margin-top:0"><button class="btn" id="bkOut">匯出備份</button><button class="btn" id="bkIn">匯入備份</button><button class="btn" id="updCheck">檢查更新</button></div>
+        <p class="sub6" id="verNote" style="margin:10px 0 0"></p>
+        <h3 style="margin:16px 0 4px">雲端同步</h3>
+        <p class="sub6" style="margin:0 0 8px">跟衣帽間工坊用同一個 Firebase 設定和同一組帳號,網頁版和手機會自動同步。</p>
+        <div id="syCfgBox"><textarea id="syCfgIn" rows="3" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px" placeholder="貼上 firebaseConfig 整段"></textarea>
+          <div class="btns" style="margin-top:6px"><button class="btn" id="sySaveCfg">儲存設定</button><span class="sub6" id="syCfgInfo" style="align-self:center"></span></div></div>
+        <div id="syIn"><div class="btns" style="margin-top:6px"><input type="text" id="syEmail" placeholder="Email" autocomplete="username" style="flex:1;min-width:160px;background:var(--well);border:1px solid var(--line);border-radius:8px;padding:7px 10px">
+          <input type="password" id="syPw" placeholder="密碼" autocomplete="current-password" style="flex:1;min-width:130px;background:var(--well);border:1px solid var(--line);border-radius:8px;padding:7px 10px"></div>
+          <div class="btns" style="margin-top:6px"><button class="btn pri" id="sySignIn">登入</button></div></div>
+        <div id="syOut" class="hidden"><div class="btns" style="margin-top:6px"><span class="sub6" id="syWho" style="flex:1;align-self:center"></span><button class="btn pri" id="syNow">立即同步</button><button class="btn" id="sySignOut">登出</button></div></div>
+        <p class="sub6" id="syStatus" style="margin:8px 0 0"></p>
+      </div>
+      <p class="foot">原型說明:成員能力取自成員設計檔;曲風流行度、製作團隊都是示意數值,之後會依世界時間軸校正。歌名不參與評分。目前的內容會自動存在這個瀏覽器裡。</p>
+    </main>
+
+    <aside class="side">
+      <div class="panel">
+        <h3>這次發行</h3>
+        <div class="relscore" id="relScore"></div>
+        <ul class="warns" id="relWarns" style="margin-top:8px"></ul>
+      </div>
+      <div class="panel">
+        <div class="score"><span class="big num" id="total">0</span><div><div class="rank" id="rank"></div><div class="sub6" id="rankSub">這首歌的預估</div></div></div>
+        <div id="meters" style="margin-top:10px"></div>
+      </div>
+      <div class="panel">
+        <div class="row" style="display:flex;justify-content:space-between;align-items:center"><h3>分量統計</h3><span class="seg" id="shareMode"><button data-sm="song" aria-pressed="true">這首</button><button data-sm="rel" aria-pressed="false">整張</button></span></div>
+        <p class="tagline" style="margin:2px 0 0">直線是依定位預期的合理比例。</p>
+        <div id="shares"></div>
+      </div>
+      <div class="panel">
+        <h3>製作會議筆記</h3>
+        <ul class="warns" id="warns" style="margin-top:8px"></ul>
+      </div>
+      <div class="panel">
+        <h3>成員反應</h3>
+        <div id="reacts"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+<dialog id="updDlg"><h2 style="margin:0 0 6px">有新版本</h2><p id="updInfo" style="margin:0"></p><p class="sub6" id="updNotes" style="white-space:pre-wrap"></p><p class="sub6" id="updHow"></p>
+  <div class="btns" style="justify-content:flex-end"><button class="btn" id="updLater">稍後</button><button class="btn" id="updBk">先匯出備份</button><button class="btn pri" id="updGo"></button></div></dialog>
+<script src="version.js"></script>
+<script>
+"use strict";
+const M=[
+  {id:"ys",n:"藝瑟",c:"#7B4FBF",vocal:72,dance:55,rap:30,expr:70,kor:100,exp:.24},
+  {id:"tr",n:"泰梨",c:"#C8102E",vocal:45,dance:65,rap:70,expr:72,kor:100,exp:.20},
+  {id:"hy",n:"日和",c:"#C9A35E",vocal:45,dance:78,rap:20,expr:68,kor:55,exp:.16},
+  {id:"he",n:"夏恩",c:"#E9746A",vocal:62,dance:55,rap:25,expr:65,kor:100,exp:.22},
+  {id:"hr",n:"河嵐",c:"#7FAF2C",vocal:50,dance:60,rap:55,expr:52,kor:100,exp:.18},
+];
+const byId=id=>M.find(m=>m.id===id);
+const AVK="songLab.avatars"; let AV={}; try{AV=JSON.parse(localStorage.getItem(AVK))||{}}catch(e){AV={}}
+function avatar(m){return `<button class="av" data-av="${m.id}" style="background:${m.c}" title="點一下換成她的頭像" aria-label="更換${m.n}的頭像">${AV[m.id]?`<img src="${AV[m.id]}" alt="">`:m.n[0]}</button>`}
+function pickAvatar(id){const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;try{const bm=await createImageBitmap(f);const z=96,c=document.createElement("canvas");c.width=c.height=z;
+    const sd=Math.min(bm.width,bm.height*0.75);const sx=(bm.width-sd)/2,sy=Math.max(0,bm.height*0.04);
+    c.getContext("2d").drawImage(bm,sx,sy,sd,sd,0,0,z,z);AV[id]=c.toDataURL("image/jpeg",.85);try{localStorage.setItem(AVK,JSON.stringify(AV))}catch(e){}save();renderResults()}catch(e){}};inp.click()}
+const TYPES={main:"主唱句",high:"高音",harm:"和聲",adlib:"即興",rap:"Rap",spoken:"唸白"};
+const FAM={pop:"流行與電子",hip:"嘻哈",rnb:"R&B",bal:"抒情",oth:"其他"};
+/* 曲風:所屬大類、2015~2022 流行度、季節 */
+const GENRES={
+  bubblegum:{n:"泡泡糖流行",f:"pop",tr:[85,78,72,65,58,52,50,48],su:1},
+  fresh:{n:"青春清新流行",f:"pop",tr:[80,82,74,62,55,50,48,46],su:1},
+  synthpop:{n:"合成器流行",f:"pop",tr:[55,58,62,66,70,74,72,70]},
+  edmpop:{n:"EDM 流行",f:"pop",tr:[70,72,70,66,62,58,55,52]},
+  tropical:{n:"熱帶浩室",f:"pop",tr:[55,84,85,68,52,45,42,40],su:1},
+  moombah:{n:"Moombahton",f:"pop",tr:[45,62,72,70,60,52,48,45],su:1},
+  futurebass:{n:"Future Bass",f:"pop",tr:[40,52,68,78,74,62,55,50]},
+  house:{n:"浩室",f:"pop",tr:[52,55,58,60,66,70,72,76]},
+  disco:{n:"復古 Disco",f:"pop",tr:[38,42,48,56,70,90,82,70]},
+  citypop:{n:"City Pop",f:"pop",tr:[35,38,42,48,56,72,74,66],su:1},
+  njs:{n:"New Jack Swing",f:"pop",tr:[30,30,32,34,38,48,62,76]},
+  poprock:{n:"流行搖滾",f:"pop",tr:[45,46,48,50,55,60,64,70]},
+  latin:{n:"拉丁流行",f:"pop",tr:[40,46,58,72,70,64,60,58],su:1},
+  dreampop:{n:"夢幻流行",f:"pop",tr:[42,46,52,58,64,66,62,58]},
+  girlcrush:{n:"Girl crush 電子嘻哈",f:"hip",tr:[60,66,74,85,88,82,84,90]},
+  trap:{n:"Trap",f:"hip",tr:[55,62,70,78,82,78,80,82]},
+  boombap:{n:"Boom Bap",f:"hip",tr:[50,48,46,46,48,52,56,62]},
+  drill:{n:"Drill",f:"hip",tr:[20,22,25,30,38,48,60,72]},
+  rnb:{n:"當代 R&B",f:"rnb",tr:[55,58,62,66,68,70,72,74]},
+  rnbballad:{n:"R&B 抒情",f:"rnb",tr:[60,60,62,64,64,66,66,64],wi:1},
+  ballad:{n:"抒情",f:"bal",tr:[70,68,66,64,62,63,62,60],wi:1},
+  orchestral:{n:"管弦抒情",f:"bal",tr:[48,52,56,60,64,70,68,64],wi:1},
+  acoustic:{n:"原聲吉他",f:"bal",tr:[62,60,58,56,55,56,56,54]},
+  oriental:{n:"東方國樂融合",f:"oth",tr:[35,38,40,44,52,66,64,58]},
+};
+const GOOD=[["girlcrush","trap"],["edmpop","futurebass"],["disco","synthpop"],["citypop","synthpop"],["tropical","moombah"],["rnb","trap"],["poprock","bubblegum"],["orchestral","girlcrush"],["oriental","girlcrush"],["njs","bubblegum"],["house","rnb"],["drill","girlcrush"],["latin","edmpop"],["dreampop","synthpop"],["disco","njs"],["oriental","trap"],["acoustic","fresh"],["futurebass","fresh"]];
+const BAD=[["ballad","trap"],["ballad","drill"],["ballad","boombap"],["acoustic","drill"],["acoustic","trap"],["acoustic","edmpop"],["orchestral","bubblegum"],["drill","fresh"],["drill","bubblegum"]];
+const pairIn=(list,a,b)=>list.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));
+/* 製作團隊(原創名,以現實的製作人類型為原型) */
+const PRODS={
+  kinyo:{n:"金曜工作室",lv:4,s:"甜美系金牌作曲組,擅長洗腦副歌",g:["bubblegum","fresh","edmpop","disco"]},
+  light:{n:"Lighthouse",lv:5,s:"頂流嘻哈製作人,很挑合作對象",g:["girlcrush","trap","drill","boombap"]},
+  neon:{n:"霓虹樂章",lv:4,s:"電子舞曲團隊,節拍與 drop 很強",g:["tropical","moombah","futurebass","edmpop"]},
+  velvet:{n:"天鵝絨實驗室",lv:5,s:"實驗電子與 R&B,作品口碑高但不一定好紅",g:["synthpop","house","rnb","dreampop"]},
+  nordic:{n:"北境作曲營",lv:4,s:"歐洲作曲家營,旋律工整國際感強",g:["edmpop","futurebass","synthpop","poprock"]},
+  dawn:{n:"白晝聲響",lv:4,s:"復古曲風專門,80 年代質感",g:["disco","citypop","njs","synthpop"]},
+  pear:{n:"梨花棧",lv:4,s:"抒情名家,擅長寫高音段落",g:["ballad","rnbballad","acoustic","orchestral"]},
+  kuro:{n:"黑潮製作",lv:3,s:"新銳嘻哈團隊,便宜好溝通",g:["trap","drill","rnb"]},
+  east:{n:"東韻工坊",lv:3,s:"國樂與管弦編曲",g:["oriental","orchestral","ballad"]},
+  sunset:{n:"夕光律動",lv:3,s:"拉丁與熱帶節奏",g:["latin","moombah","tropical"]},
+  tree:{n:"單木音樂",lv:3,s:"樂團編制,現場感強",g:["poprock","citypop","acoustic"]},
+  rookie:{n:"公司內部新人",lv:2,s:"什麼都能做,但都不頂尖",g:Object.keys(GENRES)},
+};
+const MOODS=["甜蜜","清涼","狂野","神祕","悲傷","自信","療癒"];
+const YEARS=[2015,2016,2017,2018,2019,2020,2021,2022];
+const RTYPES={digital:{n:"數位單曲",min:1,max:1,wk:3,sale:.3},single:{n:"單曲專輯",min:2,max:3,wk:5,sale:.6},mini:{n:"迷你專輯",min:4,max:6,wk:8,sale:1},full:{n:"正規專輯",min:8,max:12,wk:12,sale:1.5}};
+
+/* 結構樣板 */
+const L=(t,s,d,k)=>({t,s,d,k:!!k,who:[]});
+const INST={"前奏":10,"主歌一":4,"主歌二":4,"導歌":2,"副歌":2,"後副歌":12,"舞蹈段":14,"橋段":6,"最後副歌":4,"尾奏":10};
+const instOf=sec=>sec.inst??INST[sec.n]??2;
+const IDEAL=[210,205,200,195,190,185,175,170]; // 各年份主打歌的常見長度(秒)
+const fmt=t=>`${Math.floor(t/60)}:${String(Math.round(t%60)).padStart(2,"0")}`;
+function lengthOf(T){const v=T.secs.reduce((x,s)=>x+s.lines.reduce((y,l)=>y+(+l.s||0),0),0), i=T.secs.reduce((x,s)=>x+instOf(s),0);return {v,i,t:v+i}}
+function template(gen){
+  const fam=GENRES[gen]?.f||"pop";
+  const chorus=()=>[L("main",5,3),L("main",5,3),L("main",5,3),L("high",4,4)];
+  let secs;
+  if(fam==="bal") secs=[
+    {n:"前奏",lines:[L("harm",5,2)]},
+    {n:"主歌一",lines:[L("main",5,2),L("main",5,2),L("main",5,3),L("main",5,2)]},
+    {n:"導歌",lines:[L("main",5,3),L("high",4,4)]},
+    {n:"副歌",chorus:1,lines:[L("main",5,3),L("main",5,3),L("main",5,3),L("high",4,4)]},
+    {n:"主歌二",lines:[L("main",5,2),L("main",5,3),L("main",5,2),L("main",5,3)]},
+    {n:"副歌",chorus:1,lines:[L("main",5,3),L("main",5,3),L("main",5,3),L("high",4,4)]},
+    {n:"橋段",lines:[L("main",5,4),L("high",6,5)]},
+    {n:"最後副歌",chorus:1,lines:[L("main",5,3),L("main",5,3),L("adlib",4,4),L("high",5,5)]},
+    {n:"尾奏",lines:[L("harm",5,2)]}];
+  else{ const hip=fam==="hip", rnb=fam==="rnb";
+    secs=[
+    {n:"前奏",lines:[hip?L("spoken",3,1):L("adlib",3,2)]},
+    {n:"主歌一",lines:hip?[L("rap",5,3),L("rap",5,3),L("main",5,2),L("main",5,2)]:[L("main",5,2),L("main",5,2),L("main",5,3),L("main",5,2)]},
+    {n:"導歌",lines:[L("main",5,3),L(rnb?"harm":"main",4,3)]},
+    {n:"副歌",chorus:1,lines:chorus()},
+    {n:hip?"舞蹈段":"後副歌",lines:[L("spoken",4,1)]},
+    {n:"主歌二",lines:rnb?[L("main",5,3),L("rap",5,3),L("main",5,2),L("adlib",4,3)]:[L("rap",5,3),L("rap",5,hip?4:3),L("main",5,2),L("main",5,2)]},
+    {n:"導歌",lines:[L("main",5,3),L("main",5,3)]},
+    {n:"副歌",chorus:1,lines:chorus()},
+    {n:"橋段",lines:hip?[L("rap",5,4),L("high",4,5)]:[L("main",5,3),L("high",4,5)]},
+    {n:"最後副歌",chorus:1,lines:[...chorus(),L("adlib",3,4)]},
+    {n:"尾奏",lines:[L("spoken",3,1)]}]; }
+  const ch=secs.find(s=>s.chorus); ch.lines[2].k=true; return secs;
+}
+let tid=0; const newTrack=(name,gen)=>({id:"t"+Date.now().toString(36)+(tid++),name,g:[gen,"",""],mood:"自信",prod:"kinyo",choreo:3,secs:template(gen)});
+
+/* 狀態 */
+const KEY="songLab.v2";
+let R;
+function fresh(){
+  const a=newTrack("Crimson Lullaby","girlcrush"); a.g=["girlcrush","orchestral",""]; a.mood="神祕"; a.prod="light"; a.choreo=4;
+  const b=newTrack("Paper Moon","citypop"); b.g=["citypop","synthpop",""]; b.mood="療癒"; b.prod="dawn"; b.choreo=2;
+  return {name:"NOCTURNE",type:"single",year:2016,month:10,tracks:[a,b],title:a.id,cur:a.id,shareMode:"song"};
+}
+try{R=JSON.parse(localStorage.getItem(KEY))||null}catch(e){R=null}
+if(!R||!Array.isArray(R.tracks)||!R.tracks.length) R=fresh();
+const cur=()=>R.tracks.find(t=>t.id===R.cur)||R.tracks[0];
+function save(bump=true){if(bump){R.updatedAt=Date.now();sySchedule()} try{localStorage.setItem(KEY,JSON.stringify(R))}catch(e){}}
+
+/* 計算 */
+const req=d=>30+d*12;
+function ability(m,t,kill){
+  let a = t==="rap"?m.rap : t==="spoken"?(m.expr+m.dance)/2 : t==="adlib"?(m.vocal+m.expr)/2 : m.vocal;
+  if(t!=="spoken"&&m.kor<100) a*=.75+.25*m.kor/100;
+  if(kill) a=a*.4+(m.expr+m.dance)/2*.6;
+  return a;
+}
+function lineScore(l){
+  if(!l.who.length) return null;
+  const ms=l.who.map(byId); const a=ms.reduce((x,m)=>x+ability(m,l.t,l.k),0)/ms.length+(ms.length>1?5:0);
+  return {s:Math.min(1.1,a/req(l.d))*100, w:l.t==="harm"?.6:1};
+}
+function genreInfo(T){
+  const gs=T.g.filter(Boolean); const yi=YEARS.indexOf(+R.year); const p=gs[0];
+  let trend=GENRES[p].tr[yi]; const sec=gs.slice(1);
+  if(sec.length) trend=trend*.6+sec.reduce((x,g)=>x+GENRES[g].tr[yi],0)/sec.length*.4;
+  let combo=0; const notes=[];
+  for(let i=0;i<gs.length;i++) for(let j=i+1;j<gs.length;j++){
+    if(pairIn(GOOD,gs[i],gs[j])){combo+=6;notes.push(["g",`${GENRES[gs[i]].n} × ${GENRES[gs[j]].n} 是很搭的組合。`])}
+    else if(pairIn(BAD,gs[i],gs[j])){combo-=9;notes.push(["w",`${GENRES[gs[i]].n} 和 ${GENRES[gs[j]].n} 很難融合,聽起來會打架。`])}
+    else combo-=2;
+  }
+  const P=PRODS[T.prod]; const fit=gs.map((g,i)=>(P.g.includes(g)?1:.62)*(i===0?.6:.4/(gs.length-1||1)));
+  const prodFit=Math.min(100,P.lv*20*fit.reduce((x,v)=>x+v,0)/(gs.length>1?1:.6));
+  const miss=gs.filter(g=>!P.g.includes(g));
+  if(miss.length) notes.push(["w",`${P.n}不擅長${miss.map(g=>GENRES[g].n).join("、")},製作品質打折。`]);
+  return {gs,trend:Math.max(0,Math.min(100,trend+combo)),prodFit,notes,P};
+}
+function computeTrack(T){
+  const all=T.secs.flatMap((sec,si)=>sec.lines.map((l,li)=>({...l,si,li,sec})));
+  const total=all.reduce((x,l)=>x+(+l.s||0),0)||1;
+  const secOf={}, growth={}, flags={}; M.forEach(m=>{secOf[m.id]=0;growth[m.id]={vocal:0,rap:0,expr:0};flags[m.id]=[]});
+  let q=0,qw=0,risk=0,empty=0; const warns=[];
+  for(const l of all){
+    const sc=lineScore(l); if(!sc){empty+=+l.s;continue}
+    l.who.forEach(id=>secOf[id]+=(+l.s)/l.who.length);
+    q+=sc.s*(+l.s)*sc.w; qw+=(+l.s)*sc.w;
+    for(const id of l.who){const m=byId(id),a=ability(m,l.t,l.k),r=req(l.d);
+      const k=l.t==="rap"?"rap":l.t==="spoken"?"expr":"vocal"; growth[id][k]+=(+l.s)/l.who.length*(a<r?1.6:1);
+      if(a<r-6&&l.d>=4){risk+=(+l.s)*(r-a)/r*(1+(T.choreo-1)*.3);flags[id].push(`${l.sec.n}的${TYPES[l.t]}`)}}
+  }
+  const quality=qw?q/qw:0;
+  const shares={}; M.forEach(m=>shares[m.id]=secOf[m.id]/total);
+  const fairness=Math.max(0,Math.min(100,100-M.reduce((x,m)=>x+Math.abs(shares[m.id]-m.exp),0)*180));
+  let run=1,maxRun=1,runWho=null,prev=null;
+  for(const l of all){const k=l.who.length===1?l.who[0]:null;if(k&&k===prev){run++;if(run>maxRun){maxRun=run;runWho=k}}else run=1;prev=k}
+  const variety=Math.max(0,100-Math.max(0,maxRun-2)*14);
+  const live=Math.max(0,100-risk*2.2);
+  const G=genreInfo(T);
+  let season=0; const mo=+R.month, gp=GENRES[G.gs[0]];
+  if(gp.su&&mo>=6&&mo<=8) season+=5; if(gp.wi&&(mo>=10||mo<=1)) season+=5;
+  if(T.mood==="清涼"&&mo>=6&&mo<=8) season+=3; if(T.mood==="清涼"&&(mo>=11||mo<=2)) season-=4;
+  const kills=all.filter(l=>l.k), killer=kills[0]?.who||[];
+  const LN=lengthOf(T), ideal=IDEAL[YEARS.indexOf(+R.year)]+(GENRES[G.gs[0]].f==="bal"?25:0), off=LN.t-ideal;
+  const lenAdj=-Math.min(6,Math.max(0,Math.abs(off)-20)/6);
+  let score=quality*.32+G.trend*.22+G.prodFit*.18+fairness*.12+variety*.08+live*.08+season+lenAdj;
+  if(empty) score-=Math.min(25,empty/total*60);
+  score=Math.max(0,Math.min(100,score));
+  if(empty) warns.push(["b",`還有 ${Math.round(empty)} 秒沒分配,先補齊才能錄音。`]);
+  if(!kills.length) warns.push(["w","還沒指定 killing part,沒有記憶點的歌很難爆紅。"]);
+  if(killer.length>1) warns.push(["w","killing part 由多人一起唱,記憶點會被稀釋。"]);
+  M.forEach(m=>{ if(!secOf[m.id]) warns.push(["b",`${m.n}一句都沒有,個人粉一定會炸鍋。`]);
+    else if(shares[m.id]<m.exp-.08) warns.push(["w",`${m.n}只有 ${Math.round(shares[m.id]*100)}%,比她的定位應有的少很多。`]);
+    if(shares[m.id]>m.exp+.1) warns.push(["w",`${m.n}占了 ${Math.round(shares[m.id]*100)}%,會被說公司偏心。`]); });
+  if(maxRun>3) warns.push(["w",`${byId(runWho).n}連續獨唱 ${maxRun} 句,聽起來會單調。`]);
+  if(risk>8) warns.push(["b","高難度句交給了還撐不住的成員,打歌現場容易出狀況。"]);
+  warns.push(...G.notes);
+  if(off>20) warns.push(["w",`全長 ${fmt(LN.t)},比 ${R.year} 年常見的 ${fmt(ideal)} 長,聽眾容易在副歌重複時跳歌。`]);
+  if(off<-20) warns.push(["w",`全長 ${fmt(LN.t)},比 ${R.year} 年常見的 ${fmt(ideal)} 短,會被說誠意不足。`]);
+  if(season>0) warns.push(["g","發行時機和曲風很搭,季節加分。"]);
+  if(season<0) warns.push(["w","清涼的歌在冬天發,氣氛不對。"]);
+  if(G.trend>=80) warns.push(["g",`${R.year} 年這個曲風組合正流行,順風。`]);
+  if(G.trend<50) warns.push(["w",`${R.year} 年這個曲風不太流行,要靠作品本身撐。`]);
+  return {LN,ideal,all,total,secOf,shares,quality,fairness,variety,live,trend:G.trend,prodFit:G.prodFit,season,score,warns,growth,flags,killer,center:T.secs.find(s=>s.chorus)?.c};
+}
+const rankText=v=>v>=88?"音源冠軍候補":v>=78?"前十名":v>=68?"前三十名":v>=56?"百名內邊緣":"可能進不了榜";
+function computeRelease(){
+  const RT=RTYPES[R.type]; const res=R.tracks.map(T=>({T,c:computeTrack(T)}));
+  const title=res.find(x=>x.T.id===R.title)||res[0]; const others=res.filter(x=>x!==title);
+  const bAvg=others.length?others.reduce((a,x)=>a+x.c.score,0)/others.length:null;
+  const secAll={}; M.forEach(m=>secAll[m.id]=res.reduce((a,x)=>a+x.c.secOf[m.id],0));
+  const totAll=Object.values(secAll).reduce((a,b)=>a+b,0)||1; const sharesAll={}; M.forEach(m=>sharesAll[m.id]=secAll[m.id]/totAll);
+  const fams=new Set(R.tracks.map(T=>GENRES[T.g[0]].f)), prim=new Set(R.tracks.map(T=>T.g[0]));
+  const w=[];
+  const n=R.tracks.length;
+  if(n<RT.min) w.push(["b",`${RT.n}至少要 ${RT.min} 首,現在只有 ${n} 首。`]);
+  if(n>RT.max) w.push(["b",`${RT.n}最多 ${RT.max} 首,現在有 ${n} 首。`]);
+  let cohesion=0;
+  if(n>=3&&prim.size===1){cohesion=-4;w.push(["w","每首都是同一個曲風,整張聽起來會單調。"])}
+  else if(n>=3&&fams.size>=4){cohesion=-4;w.push(["w","曲風跳太多,專輯概念不夠統一。"])}
+  else if(n>=3){cohesion=3;w.push(["g","收錄曲風有變化又不失統一,專輯完整度不錯。"])}
+  const albumDev=M.reduce((x,m)=>x+Math.abs(sharesAll[m.id]-m.exp),0);
+  if(n>1&&albumDev<.2&&title.c.fairness<60) w.push(["g","主打分量不均,但收錄曲有幫其他成員補回來,粉絲比較能接受。"]);
+  const quality=bAvg==null?title.c.score:title.c.score*.7+bAvg*.3;
+  const sales=Math.round((quality+cohesion)*RT.sale*100)/100;
+  const salesTxt=sales>=120?"爆量":sales>=85?"很好":sales>=55?"中等":sales>=30?"偏少":"很少";
+  return {RT,res,title,bAvg,sharesAll,secAll,w,quality:quality+cohesion,salesTxt};
+}
+
+/* 畫面 */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function genreOptions(withNone){
+  return (withNone?`<option value="">(不混合)</option>`:"")+Object.entries(FAM).map(([f,fn])=>`<optgroup label="${fn}">${Object.entries(GENRES).filter(([,g])=>g.f===f).map(([k,g])=>`<option value="${k}">${g.n}</option>`).join("")}</optgroup>`).join("");
+}
+function initStatic(){
+  $("#relType").innerHTML=Object.entries(RTYPES).map(([k,t])=>`<option value="${k}">${t.n}(${t.min===t.max?t.min:t.min+"~"+t.max} 首)</option>`).join("");
+  $("#year").innerHTML=YEARS.map(y=>`<option>${y}</option>`).join("");
+  $("#month").innerHTML=[...Array(12)].map((_,i)=>`<option value="${i+1}">${i+1} 月</option>`).join("");
+  $("#g0").innerHTML=genreOptions(false); $("#g1").innerHTML=genreOptions(true); $("#g2").innerHTML=genreOptions(true);
+  $("#mood").innerHTML=MOODS.map(m=>`<option>${m}</option>`).join("");
+  $("#prod").innerHTML=Object.entries(PRODS).map(([k,p])=>`<option value="${k}">${p.n}(${"★".repeat(p.lv)})</option>`).join("");
+  $("#relName").oninput=e=>{R.name=e.target.value;save();renderSub()};
+  for(const k of ["relType","year","month"]) $("#"+k).onchange=e=>{R[k==="relType"?"type":k]=e.target.value;save();renderAll()};
+  [0,1,2].forEach(i=>$("#g"+i).onchange=e=>{const T=cur();T.g[i]=e.target.value; if(i===0){if(T.g[1]===T.g[0])T.g[1]="";if(T.g[2]===T.g[0])T.g[2]=""} if(T.g[2]&&!T.g[1]){T.g[1]=T.g[2];T.g[2]=""} save();renderAll()});
+  for(const k of ["mood","prod","choreo"]) $("#"+k).oninput=e=>{cur()[k]=k==="choreo"?+e.target.value:e.target.value;save();renderAll()};
+  $("#songName").oninput=e=>{cur().name=e.target.value;save();renderTracks()};
+  $("#setTitle").onclick=()=>{R.title=R.cur;save();renderAll()};
+  $("#delTrack").onclick=()=>{ if(R.tracks.length<=1) return; const i=R.tracks.findIndex(t=>t.id===R.cur); R.tracks.splice(i,1);
+    if(R.title===R.cur) R.title=R.tracks[0].id; R.cur=R.tracks[Math.max(0,i-1)].id; save(); renderAll() };
+  $("#suggest").onclick=()=>{suggest(cur());commit()};
+  $("#clear").onclick=()=>{cur().secs.forEach(s=>s.lines.forEach(l=>l.who=[]));commit()};
+  $("#reset").onclick=()=>{cur().secs=template(cur().g[0]);commit()};
+  document.querySelectorAll("[data-sm]").forEach(b=>b.onclick=()=>{R.shareMode=b.dataset.sm;save();renderResults()});
+}
+function renderSub(){const RT=RTYPES[R.type];const tot=R.tracks.reduce((a,T)=>a+lengthOf(T).t,0);$("#relSub").textContent=`${RT.n}、${R.tracks.length} 首、總長 ${fmt(tot)}、${R.year} 年 ${R.month} 月發行、準備期約 ${RT.wk} 週`}
+function renderTracks(){
+  $("#tracks").innerHTML=R.tracks.map((T,i)=>`<button class="tk" data-tk="${T.id}" aria-pressed="${T.id===R.cur}"><span class="no">${String(i+1).padStart(2,"0")}</span>${T.id===R.title?"主打・":""}${esc(T.name||"未命名")}</button>`).join("")
+    +(R.tracks.length<RTYPES[R.type].max?`<button class="btn" id="addTrack">+ 新增曲目</button>`:"");
+  document.querySelectorAll("[data-tk]").forEach(b=>b.onclick=()=>{R.cur=b.dataset.tk;save();renderAll()});
+  const add=$("#addTrack"); if(add) add.onclick=()=>{const T=newTrack("",cur().g[0]);suggest(T);R.tracks.push(T);R.cur=T.id;save();renderAll();$("#songName").focus()};
+}
+function renderTrackForm(){
+  const T=cur(); $("#songName").value=T.name; $("#songName").placeholder="輸入歌名(不參與評分)";
+  [0,1,2].forEach(i=>$("#g"+i).value=T.g[i]||"");
+  $("#mood").value=T.mood; $("#prod").value=T.prod; $("#choreo").value=T.choreo; $("#choreoV").textContent=T.choreo;
+  const P=PRODS[T.prod]; $("#prodInfo").textContent=`${P.n}:${P.s}。擅長 ${P.g.length>10?"所有曲風":P.g.map(g=>GENRES[g].n).join("、")}。`;
+  const isT=R.title===T.id; $("#setTitle").textContent=isT?"這首是主打":"設為主打"; $("#setTitle").disabled=isT; $("#delTrack").disabled=R.tracks.length<=1;
+  $("#relName").value=R.name; $("#relType").value=R.type; $("#year").value=R.year; $("#month").value=R.month;
+}
+function fill(l){ if(!l.who.length) return null; if(l.who.length===1) return byId(l.who[0]).c;
+  const n=l.who.length; return `linear-gradient(90deg,${l.who.map((id,i)=>`${byId(id).c} ${i/n*100}% ${(i+1)/n*100}%`).join(",")})` }
+function renderRibbon(C){
+  const T=cur();
+  const blocks=[]; let lastSi=-1;
+  for(const l of C.all){ if(l.si!==lastSi){lastSi=l.si; const ins=instOf(T.secs[l.si]); if(ins>0) blocks.push(`<span class="blk inst" style="flex-grow:${ins}" title="${esc(T.secs[l.si].n)}・伴奏 ${ins} 秒"></span>`)} blocks.push(l) }
+  $("#strip").innerHTML=blocks.map(l=>{if(typeof l==="string") return l; const f=fill(l);return `<button class="blk ${f?"":"empty"}" style="flex-grow:${l.s};${f?`background:${f}`:""}" data-go="${l.si}-${l.li}" title="${esc(l.sec.n)}・${TYPES[l.t]}・${l.s} 秒${l.who.length?"・"+l.who.map(id=>byId(id).n).join("、"):"・未分配"}" aria-label="${esc(l.sec.n)} ${TYPES[l.t]}">${l.k?'<span class="kp">★</span>':""}</button>`}).join("");
+  $("#secs").innerHTML=T.secs.map(sec=>`<span style="flex-grow:${sec.lines.reduce((x,l)=>x+(+l.s),0)+instOf(sec)}">${esc(sec.n)}</span>`).join("");
+  $("#legend").innerHTML=M.map(m=>`<span><i class="dot" style="background:${m.c}"></i>${m.n}</span>`).join("")+`<span>★ killing part</span><span><i class="dot" style="background:var(--line)"></i>伴奏</span>`;
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const el=document.getElementById("ln-"+b.dataset.go);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.querySelector("select")?.focus({preventScroll:true})}});
+}
+function renderEditor(){
+  const T=cur();
+  $("#editor").innerHTML=T.secs.map((sec,si)=>`<div class="sec">
+    <div class="sechead"><h3>${esc(sec.n)}</h3><label class="secinst">伴奏<input type="number" min="0" max="40" value="${instOf(sec)}" data-in="${si}" class="num" aria-label="${esc(sec.n)}的伴奏秒數">秒</label>${sec.chorus?`<span class="c">C 位<select data-c="${si}" aria-label="${esc(sec.n)}的 C 位"><option value="">未指定</option>${M.map(m=>`<option value="${m.id}" ${sec.c===m.id?"selected":""}>${m.n}</option>`).join("")}</select></span>`:""}</div>
+    ${sec.lines.map((l,li)=>`<div class="ln" id="ln-${si}-${li}">
+      <select data-t="${si}-${li}" aria-label="類型">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${l.t===k?"selected":""}>${v}</option>`).join("")}</select>
+      <input type="number" min="1" max="12" value="${l.s}" data-s="${si}-${li}" aria-label="秒數" class="num">
+      <select data-d="${si}-${li}" aria-label="難度">${[1,2,3,4,5].map(d=>`<option value="${d}" ${+l.d===d?"selected":""}>難度 ${d}</option>`).join("")}</select>
+      <div class="who">${M.map(m=>{const on=l.who.includes(m.id);return `<button class="mb" data-w="${si}-${li}-${m.id}" aria-pressed="${on}" style="${on?`background:${m.c}`:""}" aria-label="${m.n}" title="${m.n}">${m.n[0]}</button>`}).join("")}</div>
+      <button class="kill" data-k="${si}-${li}" aria-pressed="${l.k}" aria-label="設為 killing part" title="killing part">★</button>
+      <button class="del" data-x="${si}-${li}" aria-label="刪除這句">×</button>
+    </div>`).join("")}
+    <button class="add" data-a="${si}">+ 加一句</button></div>`).join("");
+  const at=s=>{const [a,b]=s.split("-").map(Number);return T.secs[a].lines[b]};
+  document.querySelectorAll("[data-t]").forEach(e=>e.onchange=()=>{at(e.dataset.t).t=e.value;commit()});
+  document.querySelectorAll("[data-s]").forEach(e=>e.oninput=()=>{at(e.dataset.s).s=Math.max(1,Math.min(12,+e.value||1));commit(true)});
+  document.querySelectorAll("[data-d]").forEach(e=>e.onchange=()=>{at(e.dataset.d).d=+e.value;commit()});
+  document.querySelectorAll("[data-w]").forEach(e=>e.onclick=()=>{const [a,b,id]=e.dataset.w.split("-");const l=T.secs[a].lines[b];l.who=l.who.includes(id)?l.who.filter(x=>x!==id):[...l.who,id];commit()});
+  document.querySelectorAll("[data-k]").forEach(e=>e.onclick=()=>{const l=at(e.dataset.k);const on=!l.k;T.secs.forEach(s=>s.lines.forEach(x=>x.k=false));l.k=on;commit()});
+  document.querySelectorAll("[data-x]").forEach(e=>e.onclick=()=>{const [a,b]=e.dataset.x.split("-").map(Number);T.secs[a].lines.splice(b,1);commit()});
+  document.querySelectorAll("[data-a]").forEach(e=>e.onclick=()=>{T.secs[+e.dataset.a].lines.push(L("main",4,2));commit()});
+  document.querySelectorAll("[data-c]").forEach(e=>e.onchange=()=>{T.secs.forEach(s=>{if(s.chorus) s.c=e.value});commit()});
+  document.querySelectorAll("[data-in]").forEach(e=>e.oninput=()=>{T.secs[+e.dataset.in].inst=Math.max(0,Math.min(40,+e.value||0));commit(true)});
+}
+function commit(soft){save(); soft?renderResults():renderAll()}
+function renderResults(){
+  const RL=computeRelease(), C=RL.res.find(x=>x.T.id===R.cur).c;
+  renderRibbon(C); renderSub();
+  $("#lenRow").innerHTML=`<span>全長 <b>${fmt(C.LN.t)}</b></span><span>人聲 ${fmt(C.LN.v)}、伴奏 ${fmt(C.LN.i)}</span><span>${R.year} 年這類歌常見長度約 ${fmt(C.ideal)}</span>`;
+  const isT=R.title===R.cur;
+  $("#relScore").innerHTML=`<div><b>${rankText(RL.title.c.score)}</b><span>主打歌音源預估</span></div><div><b>${RL.salesTxt}</b><span>${RL.RT.n}實體銷量</span></div>
+    <div><b class="num">${Math.round(RL.quality)}</b><span>整張完成度</span></div><div><b class="num">${RL.bAvg==null?"–":Math.round(RL.bAvg)}</b><span>收錄曲平均</span></div>`;
+  $("#relWarns").innerHTML=RL.w.map(([k,t])=>`<li class="${k}">${t}</li>`).join("")||`<li class="g">形式和曲目數都沒問題。</li>`;
+  $("#total").textContent=Math.round(C.score); $("#rank").textContent=isT?rankText(C.score):"收錄曲"; $("#rankSub").textContent=isT?"主打歌的預估":"收錄曲影響整張完成度";
+  const mt=[["歌曲品質",C.quality],["時代流行",C.trend],["製作團隊",C.prodFit],["分配公平",C.fairness],["聲線變化",C.variety],["現場穩定",C.live]];
+  $("#meters").innerHTML=mt.map(([n,v])=>`<div class="meter"><span>${n}</span><span class="bar"><i style="width:${Math.max(0,Math.min(100,v))}%"></i></span><span class="num">${Math.round(v)}</span></div>`).join("");
+  const rel=R.shareMode==="rel", sh=rel?RL.sharesAll:C.shares, sc=rel?RL.secAll:C.secOf;
+  document.querySelectorAll("[data-sm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sm===R.shareMode));
+  $("#shares").innerHTML=M.map(m=>`<div class="share"><span>${m.n}</span><span class="track"><span class="fill" style="display:block;width:${Math.min(100,sh[m.id]*250)}%;background:${m.c}"></span><span class="exp" style="left:${m.exp*250}%"></span></span><span class="num">${Math.round(sc[m.id])} 秒 ${Math.round(sh[m.id]*100)}%</span></div>`).join("");
+  $("#warns").innerHTML=(C.warns.length?C.warns:[["g","目前看起來沒有明顯問題。"]]).map(([k,t])=>`<li class="${k}">${t}</li>`).join("");
+  $("#reacts").innerHTML=M.map(m=>{
+    const d=C.shares[m.id]-m.exp, g=C.growth[m.id], fl=C.flags[m.id], kill=C.killer.includes(m.id), center=C.center===m.id;
+    const mood=!C.secOf[m.id]?["dn","心情大跌"]:d<-.07?["dn","有點失落"]:d>.08?["up","很開心,但怕被說偏心"]:["","心情平穩"];
+    const lines=[]; if(kill) lines.push(isT?"拿到主打的 killing part,直拍爆紅機率大增":"拿到這首的 killing part");
+    if(center) lines.push("副歌站 C 位,曝光最多");
+    if(fl.length) lines.push(`${fl.slice(0,2).join("、")}對她來說很吃力,壓力大但進步快`);
+    const gs=Object.entries(g).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k,v])=>`${{vocal:"唱功",rap:"Rap",expr:"表情管理"}[k]} +${Math.max(1,Math.round(v/6))}`);
+    return `<div class="react">${avatar(m)}<div><b style="color:${m.c}">${m.n}</b>・<span class="${mood[0]}">${mood[1]}</span>${gs.length?`<div class="tagline">成長:${gs.join("、")}</div>`:""}${lines.map(t=>`<div class="tagline">${t}</div>`).join("")}</div></div>`}).join("")+`<p class="tagline" style="margin:10px 0 0">點頭像可以換成她的照片,只存在這個瀏覽器。</p>`;
+  document.querySelectorAll("[data-av]").forEach(b=>b.onclick=()=>pickAvatar(b.dataset.av));
+}
+function renderAll(){ renderTracks(); renderTrackForm(); renderEditor(); renderResults() }
+
+/* 建議分配 */
+function suggest(T){
+  const lines=T.secs.flatMap(s=>s.lines), tot=lines.reduce((x,l)=>x+(+l.s),0);
+  const got={}; M.forEach(m=>got[m.id]=0); let prev=null,run=0; lines.forEach(l=>l.who=[]);
+  const last=T.secs[T.secs.length-2];
+  for(const sec of T.secs) for(const l of sec.lines){
+    if(sec===last&&l===sec.lines[sec.lines.length-1]&&l.t!=="spoken"){l.who=M.map(m=>m.id);M.forEach(m=>got[m.id]+=(+l.s)/5);prev=null;continue}
+    let best=null,bv=-1e9;
+    for(const m of M){const a=ability(m,l.t,l.k),fit=Math.min(1.15,a/req(l.d)),over=(got[m.id]+(+l.s))/tot-m.exp;
+      let v=fit*100-Math.max(0,over)*320+Math.max(0,-over)*240; if(m.id===prev&&run>=2) v-=60; if(l.t==="rap"&&m.rap<45) v-=40;
+      if(v>bv){bv=v;best=m}}
+    l.who=[best.id]; got[best.id]+=(+l.s); run=best.id===prev?run+1:1; prev=best.id;
+  }
+  T.secs.forEach(s=>{if(s.chorus&&!s.c) s.c="he"});
+}
+
+/* ---------- 工具:提示、匯出備份、版本更新 ---------- */
+let tt; function toast(t){let e=document.getElementById("toast");if(!e){e=document.createElement("div");e.id="toast";e.className="toast";e.setAttribute("role","status");document.body.appendChild(e)}e.textContent=t;e.classList.remove("hidden");clearTimeout(tt);tt=setTimeout(()=>e.classList.add("hidden"),2600)}
+const stampName=()=>new Date().toISOString().slice(0,10);
+function blobToB64(blob){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=()=>no(r.error);r.readAsDataURL(blob)})}
+async function offer(filename,blob){
+  try{ const P=window.Capacitor?.Plugins;
+    if(P?.Filesystem&&P?.Share){const r=await P.Filesystem.writeFile({path:filename,data:await blobToB64(blob),directory:"CACHE"});await P.Share.share({title:filename,url:r.uri,dialogTitle:"匯出檔案"});return}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+  }catch(e){ if(!/cancel/i.test(String(e?.message||e))) toast("匯出失敗") }
+}
+$("#bkOut").onclick=()=>offer(`歌曲企劃室備份_${stampName()}.json`,new Blob([JSON.stringify({app:"kpop-songs",ver:1,exported:new Date().toISOString(),release:R,avatars:AV})],{type:"application/json"}));
+$("#bkIn").onclick=()=>{const inp=document.createElement("input");inp.type="file";inp.accept="application/json,.json";
+  inp.onchange=async()=>{try{const o=JSON.parse(await inp.files[0].text()); if(o.app!=="kpop-songs"||!o.release?.tracks) throw 0;
+    R=o.release; if(o.avatars){AV=o.avatars;try{localStorage.setItem(AVK,JSON.stringify(AV))}catch(e){}} save(); renderAll(); toast("匯入完成")}catch(e){toast("這不是歌曲企劃室的備份檔")}};inp.click()};
+$("#verNote").textContent="版本 "+(window.APP_VERSION||"開發版");
+const isNative=!!window.Capacitor?.isNativePlatform?.();
+let updLatest=null,updLastCheck=0,updDismissed=0;
+async function checkUpdate(manual){
+  updLastCheck=Date.now();
+  if(!window.PAGES_URL||typeof window.APP_BUILD!=="number"){ if(manual) toast("開發版不檢查更新"); return }
+  try{const r=await fetch(window.PAGES_URL+"version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) throw 0; const v=await r.json();
+    if(+v.build>window.APP_BUILD){updLatest=v; if(manual||updDismissed!==+v.build) showUpdate(v)} else if(manual) toast("已經是最新版本")}
+  catch(e){ if(manual) toast("檢查更新失敗,請確認網路") }
+}
+function showUpdate(v){
+  $("#updInfo").textContent=`目前 ${window.APP_VERSION},最新 ${v.version}。`;
+  $("#updNotes").textContent=v.notes?("更新內容:"+String(v.notes).trim().slice(0,400)):"";
+  $("#updHow").textContent=isNative?"按下後會用瀏覽器下載新的安裝檔,下載完點開安裝,資料會保留。":"按下後會重新載入成新版,資料會保留。";
+  $("#updGo").textContent=isNative?"下載新版":"立即更新";
+  const d=$("#updDlg"); if(!d.open) d.showModal();
+}
+$("#updLater").onclick=()=>{updDismissed=+(updLatest?.build||0);$("#updDlg").close()};
+$("#updBk").onclick=()=>$("#bkOut").click();
+$("#updGo").onclick=async()=>{
+  if(isNative){const url=window.PAGES_URL+"KPOP-Songs.apk?v="+(updLatest?.build||Date.now());const w=window.open(url,"_blank");if(!w) location.href=url;return}
+  $("#updGo").disabled=true;$("#updGo").textContent="更新中…";
+  try{await Promise.all(["index.html","version.js","manifest.webmanifest"].map(u=>fetch(u,{cache:"reload"}).catch(()=>{})))}catch(e){}
+  location.reload();
+};
+$("#updCheck").onclick=()=>checkUpdate(true);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&Date.now()-updLastCheck>30*60*1000) checkUpdate(false)});
+setTimeout(()=>checkUpdate(false),3000);
+
+/* ---------- 雲端同步(Firebase,與衣帽間工坊同一個專案與帳號) ---------- */
+const SY_CFG="kpopSync.cfg",SY_AUTH="kpopSync.auth";
+const syCfg=()=>{try{return JSON.parse(localStorage.getItem(SY_CFG)||"null")}catch(e){return null}};
+const syAuth=()=>{try{return JSON.parse(localStorage.getItem(SY_AUTH)||"null")}catch(e){return null}};
+let syTok=null,syBusy=false,syAgain=false,syTimer=0,syLast=0;
+const SY_ERR={INVALID_LOGIN_CREDENTIALS:"Email 或密碼錯誤。",INVALID_PASSWORD:"Email 或密碼錯誤。",EMAIL_NOT_FOUND:"Email 或密碼錯誤。",INVALID_EMAIL:"Email 格式不對。",
+  API_KEY_INVALID:"Firebase 設定的 apiKey 不正確。",PERMISSION_DENIED:"Firestore 安全規則擋住了,請確認規則已發布。",NOT_FOUND:"找不到 Firestore 資料庫。",TOKEN_EXPIRED:"登入已過期,請重新登入。",network:"連不上雲端,請確認網路。"};
+const syMsg=e=>{const c=String(e?.code||e||"");for(const k in SY_ERR) if(c.includes(k)) return SY_ERR[k];return "同步失敗:"+c.slice(0,80)};
+async function syJSON(url,opt){let r;try{r=await fetch(url,opt)}catch(e){throw {code:"network"}}
+  const j=await r.json().catch(()=>({})); if(!r.ok) throw {code:String(j?.error?.message||j?.error?.status||"HTTP "+r.status),status:r.status}; return j}
+async function syToken(){const a=syAuth(),c=syCfg(); if(!a||!c) throw {code:"未登入"}; if(syTok&&syTok.exp>Date.now()) return syTok.id;
+  const j=await syJSON(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(c.apiKey)}`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(a.refreshToken)});
+  a.refreshToken=j.refresh_token; localStorage.setItem(SY_AUTH,JSON.stringify(a)); syTok={id:j.id_token,exp:Date.now()+(+j.expires_in-60)*1000}; return syTok.id}
+const syURL=()=>{const c=syCfg(),a=syAuth();return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(c.projectId)}/databases/(default)/documents/users/${a.uid}/songs/state`};
+function syStatus(t,err){const e=$("#syStatus");e.textContent=t;e.style.color=err?"var(--neg)":""}
+function sySchedule(){if(!syAuth()) return; clearTimeout(syTimer); syTimer=setTimeout(()=>syncNow(false),4000)}
+async function syncNow(manual){
+  if(!syAuth()||!syCfg()){ if(manual) toast("請先登入雲端同步"); return }
+  if(syBusy){syAgain=true;return} syBusy=true; syStatus("同步中…");
+  try{
+    const t=await syToken(); let doc=null;
+    try{doc=await syJSON(syURL(),{headers:{Authorization:"Bearer "+t}})}catch(e){if(e.status!==404) throw e}
+    const remoteAt=doc?+doc.fields.updatedAt.integerValue:0, localAt=+(R.updatedAt||0);
+    if(remoteAt>localAt){ const o=JSON.parse(doc.fields.json.stringValue); R=o.release; R.updatedAt=remoteAt; if(o.avatars){AV=o.avatars;try{localStorage.setItem(AVK,JSON.stringify(AV))}catch(e){}}
+      save(false); renderAll(); if(manual) toast("已下載雲端的最新內容") }
+    else if(localAt>remoteAt||!doc){ const at=localAt||Date.now(); R.updatedAt=at; save(false);
+      await syJSON(syURL(),{method:"PATCH",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify({release:R,avatars:AV})},updatedAt:{integerValue:String(at)}}})});
+      if(manual) toast("已上傳到雲端") }
+    else if(manual) toast("兩邊已經一致");
+    syLast=Date.now(); syStatus("已同步 "+new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){syStatus(syMsg(e),true); if(manual) toast(syMsg(e))}
+  finally{syBusy=false; if(syAgain){syAgain=false;sySchedule()}}
+}
+function syRender(){const c=syCfg(),a=syAuth(); $("#syCfgInfo").textContent=c?`已設定專案:${c.projectId}`:"";
+  $("#syIn").classList.toggle("hidden",!!a); $("#syOut").classList.toggle("hidden",!a); $("#syWho").textContent=a?`已登入:${a.email}`:""}
+$("#sySaveCfg").onclick=()=>{const t=$("#syCfgIn").value; const k=t.match(/apiKey["'\s:]+["']([^"']+)["']/),p=t.match(/projectId["'\s:]+["']([^"']+)["']/);
+  if(!k||!p){toast("找不到 apiKey 或 projectId,請貼上整段 firebaseConfig");return}
+  localStorage.setItem(SY_CFG,JSON.stringify({apiKey:k[1],projectId:p[1]})); $("#syCfgIn").value=""; syRender(); toast("Firebase 設定已儲存")};
+$("#sySignIn").onclick=async()=>{const c=syCfg(); if(!c){toast("先貼上 Firebase 設定");return} syStatus("登入中…");
+  try{const j=await syJSON(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(c.apiKey)}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:$("#syEmail").value.trim(),password:$("#syPw").value,returnSecureToken:true})});
+    localStorage.setItem(SY_AUTH,JSON.stringify({uid:j.localId,email:j.email,refreshToken:j.refreshToken})); syTok={id:j.idToken,exp:Date.now()+(+j.expiresIn-60)*1000};
+    $("#syPw").value=""; syRender(); syncNow(true)}catch(e){syStatus(syMsg(e),true)}};
+$("#sySignOut").onclick=()=>{localStorage.removeItem(SY_AUTH);syTok=null;syRender();syStatus("");toast("已登出,本機內容保留")};
+$("#syNow").onclick=()=>syncNow(true);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&Date.now()-syLast>2*60*1000) syncNow(false)});
+
+initStatic();
+R.tracks.forEach(T=>{if(!T.secs.some(s=>s.lines.some(l=>l.who.length))) suggest(T)});
+save(false); renderAll(); syRender(); syncNow(false);
+</script>
+</body>
+</html>

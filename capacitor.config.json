@@ -1,0 +1,6 @@
+{
+  "appId": "com.yoona.kpopsongs",
+  "appName": "歌曲企劃室",
+  "webDir": "www",
+  "android": { "backgroundColor": "#EEEBF3" }
+}
