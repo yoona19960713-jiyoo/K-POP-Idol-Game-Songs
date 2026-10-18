@@ -238,7 +238,7 @@ function avatar(m){return `<button class="av" data-av="${m.id}" style="backgroun
 function pickAvatar(id){const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
   inp.onchange=async()=>{const f=inp.files[0];if(!f)return;try{const bm=await createImageBitmap(f);const z=96,c=document.createElement("canvas");c.width=c.height=z;
     const sd=Math.min(bm.width,bm.height*0.75);const sx=(bm.width-sd)/2,sy=Math.max(0,bm.height*0.04);
-    c.getContext("2d").drawImage(bm,sx,sy,sd,sd,0,0,z,z);AV[id]=c.toDataURL("image/jpeg",.85);try{localStorage.setItem(AVK,JSON.stringify(AV))}catch(e){}save();renderResults()}catch(e){}};inp.click()}
+    c.getContext("2d").drawImage(bm,sx,sy,sd,sd,0,0,z,z);AV[id]=c.toDataURL("image/jpeg",.85);try{localStorage.setItem(AVK,JSON.stringify(AV));localStorage.setItem("songLab.avAt",String(Date.now()))}catch(e){}save();renderResults()}catch(e){}};inp.click()}
 const TYPES={main:"主唱句",high:"高音",harm:"和聲",adlib:"即興",rap:"Rap",spoken:"唸白"};
 const FAM={pop:"流行與電子",hip:"嘻哈",rnb:"R&B",bal:"抒情",oth:"其他"};
 /* 曲風:所屬大類、2015~2022 流行度、季節 */
@@ -630,13 +630,22 @@ async function syncNow(manual){
     if(remoteAt>localAt){ const o=JSON.parse(doc.fields.json.stringValue); R=o.release; R.updatedAt=remoteAt; if(o.avatars){AV=o.avatars;try{localStorage.setItem(AVK,JSON.stringify(AV))}catch(e){}}
       save(false); renderAll(); if(manual) toast("已下載雲端的最新內容") }
     else if(localAt>remoteAt||!doc){ const at=localAt||Date.now(); R.updatedAt=at; save(false);
-      await syJSON(syURL(),{method:"PATCH",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify({release:R,avatars:AV})},updatedAt:{integerValue:String(at)}}})});
+      await syJSON(syURL(),{method:"PATCH",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify({release:R,avatars:AV,summary:songSummary()})},updatedAt:{integerValue:String(at)}}})});
       if(manual) toast("已上傳到雲端") }
     else if(manual) toast("兩邊已經一致");
+    /* 頭像:與衣帽間、打歌準備室共用 */
+    const avURL=syURL().replace(/songs\/state$/,"shared/avatars"); let ad=null;
+    try{ad=await syJSON(avURL,{headers:{Authorization:"Bearer "+t}})}catch(e){if(e.status!==404) throw e}
+    const aRemote=ad?+ad.fields.updatedAt.integerValue:0, aLocal=+(localStorage.getItem("songLab.avAt")||0)||(Object.keys(AV).length?1:0);
+    if(aRemote>aLocal){AV=JSON.parse(ad.fields.json.stringValue);try{localStorage.setItem(AVK,JSON.stringify(AV));localStorage.setItem("songLab.avAt",String(aRemote))}catch(e){}renderResults()}
+    else if(aLocal>aRemote) await syJSON(avURL,{method:"PATCH",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify({fields:{json:{stringValue:JSON.stringify(AV)},updatedAt:{integerValue:String(aLocal)}}})});
     syLast=Date.now(); syStatus("已同步 "+new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"}));
   }catch(e){syStatus(syMsg(e),true); if(manual) toast(syMsg(e))}
   finally{syBusy=false; if(syAgain){syAgain=false;sySchedule()}}
 }
+function songSummary(){const T=R.tracks.find(x=>x.id===R.title)||R.tracks[0]; const C=computeTrack(T); const hl={};
+  T.secs.forEach(sec=>sec.lines.forEach(l=>{if(l.t==="high") l.who.forEach(id=>hl[id]=(hl[id]||0)+1)}));
+  return {title:{name:T.name||"未命名",score:C.score,killer:C.killer[0]||"",center:C.center||"",highLines:hl,genre:T.g[0],mood:T.mood},release:R.name,type:R.type}}
 function syRender(){const c=syCfg(),a=syAuth(); $("#syCfgInfo").textContent=c?`已設定專案:${c.projectId}`:"";
   $("#syIn").classList.toggle("hidden",!!a); $("#syOut").classList.toggle("hidden",!a); $("#syWho").textContent=a?`已登入:${a.email}`:""}
 $("#sySaveCfg").onclick=()=>{const t=$("#syCfgIn").value; const k=t.match(/apiKey["'\s:]+["']([^"']+)["']/),p=t.match(/projectId["'\s:]+["']([^"']+)["']/);
